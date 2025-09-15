@@ -32,3 +32,5 @@ poppler_path = C:\poppler-24.02.0\Library\bin
 -   選擇一個或多個 PDF 檔案。
 -   選擇儲存轉換後 TIF 檔案的目錄。
 -   即時進度顯示。
+
+![example.png](https://github.com/jasonSOUI/pdf_to_tif/blob/main/example.png)
