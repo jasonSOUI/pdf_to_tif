@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF 轉 TIF 轉換器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 2rem 3rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        input[type="file"], select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="file"]::file-selector-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #2980b9;
+        }
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: #27ae60;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #3498db;
+            animation: spin 1s ease infinite;
+            display: none; /* Hidden by default */
+            margin: 1rem auto 0;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>PDF 轉 TIF 轉換器</h1>
+    <form id="upload-form">
+        <div class="form-group">
+            <label for="pdf-file">1. 選擇一個 PDF 檔案</label>
+            <input type="file" id="pdf-file" name="file" accept=".pdf" required>
+        </div>
+        <div class="form-group">
+            <label for="compression">2. 選擇壓縮格式</label>
+            <select id="compression" name="compression">
+                <option value="LZW">LZW (預設)</option>
+                <option value="CCITT T.6">CCITT T.6 (黑白最佳)</option>
+            </select>
+        </div>
+        <button type="submit" id="submit-btn">開始轉換</button>
+    </form>
+    <div id="status"></div>
+    <div class="spinner" id="spinner"></div>
+</div>
+
+<script>
+    const form = document.getElementById('upload-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusDiv = document.getElementById('status');
+    const spinner = document.getElementById('spinner');
+    const fileInput = document.getElementById('pdf-file');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            statusDiv.innerHTML = `<span style="color: #e74c3c;">請先選擇一個檔案。</span>`;
+            return;
+        }
+
+        submitBtn.disabled = true;
+        spinner.style.display = 'block';
+        statusDiv.textContent = '正在上傳並處理檔案，請稍候...';
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('compression', document.getElementById('compression').value);
+
+        try {
+            const response = await fetch('api/convert', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.detail || '發生未知錯誤');
+            }
+
+            statusDiv.innerHTML = `轉換成功！點擊下載：<a href="${result.download_url}" target="_blank">${result.download_url.split('/').pop()}</a>`;
+
+        } catch (error) {
+            statusDiv.innerHTML = `<span style="color: #e74c3c;">錯誤: ${error.message}</span>`;
+        } finally {
+            submitBtn.disabled = false;
+            spinner.style.display = 'none';
+            form.reset(); // Clear the form inputs
+        }
+    });
+</script>
+
+</body>
+</html>

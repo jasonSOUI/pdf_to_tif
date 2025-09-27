@@ -1,2 +1,4 @@
 Pillow
 pdf2image
+fastapi
+uvicorn[standard]
